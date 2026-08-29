@@ -99,6 +99,9 @@ class Exceptions extends BaseConfig
      *          return new \App\Libraries\MyExceptionHandler();
      *      }
      */
+
+    public string $exceptionHandler = \App\Libraries\JsonExceptionHandler::class;
+
     public function handler(int $statusCode, Throwable $exception): ExceptionHandlerInterface
     {
         return new ExceptionHandler($this);
