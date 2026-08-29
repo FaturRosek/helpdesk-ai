@@ -22,4 +22,21 @@ class PingController extends BaseApiController
 
         return $this->success(null, 'Validation passed');
     }
+
+    public function testUserModel()
+    {
+        $userModel = new \App\Models\UserModel();
+
+        $id = $userModel->insert([
+            'name'          => 'Test User',
+            'email'         => 'test@example.com',
+            'password_hash' => password_hash('password123', PASSWORD_BCRYPT),
+            'role'          => 'customer',
+            'is_active'     => 1,
+        ]);
+
+        $user = $userModel->find($id);
+
+        return $this->success($user, 'User created via Model');
+    }
 }
