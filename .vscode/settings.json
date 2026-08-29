@@ -1,0 +1,9 @@
+{
+    "intelephense.diagnostics.notOpenTag": true,
+    "intelephense.files.exclude": [
+        "**/.git/**",
+        "**/node_modules/**",
+        "**/vendor/**/{Tests,tests}/**",
+        "**/Database/Migrations/**"
+    ]
+}
