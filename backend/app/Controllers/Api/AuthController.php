@@ -83,4 +83,11 @@ class AuthController extends BaseApiController
             'token_type'    => 'Bearer',
         ], 'Login successful');
     }
+
+    public function me()
+    {
+        $user = $_SERVER['auth_user'] ?? null;
+
+        return $this->success(['user' => $user], 'Current user');
+    }
 }

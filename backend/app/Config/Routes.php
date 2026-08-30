@@ -21,3 +21,4 @@ $routes->group('api/auth', static function ($routes) {
     $routes->post('register', 'Api\AuthController::register');
     $routes->post('login', 'Api\AuthController::login');
 });
+$routes->get('api/auth/me', 'Api\AuthController::me', ['filter' => 'jwtAuth']);
