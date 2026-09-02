@@ -26,6 +26,13 @@ $routes->get('api/auth/me', 'Api\AuthController::me', ['filter' => ['jwtAuth']])
 $routes->get('api/admin-only', static function () {
     return service('response')->setJSON([
         'success' => true,
-        'message' => 'Halo Admin! Kamu berhasil masuk area khusus admin.',
     ]);
 }, ['filter' => ['jwtAuth', 'role:admin']]);
+
+$routes->group('api/users', ['filter' => ['jwtAuth', 'role:admin']], static function ($routes) {
+    $routes->get('/', 'Api\UserController::index');
+    $routes->post('/', 'Api\UserController::create');
+    $routes->get('(:num)', 'Api\UserController::show/$1');
+    $routes->put('(:num)', 'Api\UserController::update/$1');
+    $routes->delete('(:num)', 'Api\UserController::delete/$1');
+});
