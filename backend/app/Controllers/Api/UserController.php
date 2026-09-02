@@ -95,4 +95,38 @@ class UserController extends BaseApiController
 
         return $this->success(null, 'User deleted');
     }
+
+    public function changeRole($id = null)
+    {
+        $user = $this->users->find($id);
+
+        if (! $user) {
+            return $this->error('User not found', 404);
+        }
+
+        $rules = ['role' => 'required|in_list[admin,manager,agent,customer]'];
+
+        if (! $this->validate($rules)) {
+            return $this->error('Validation failed', 422, $this->validator->getErrors());
+        }
+
+        $data = $this->request->getJSON(true);
+        $this->users->update($id, ['role' => $data['role']]);
+
+        return $this->success($this->users->find($id), 'Role updated');
+    }
+
+    public function activate($id = null)
+    {
+        $user = $this->users->find($id);
+
+        if (! $user) {
+            return $this->error('User not found', 404);
+        }
+
+        $newStatus = (int) $user['is_active'] === 1 ? 0 : 1;
+        $this->users->update($id, ['is_active' => $newStatus]);
+
+        return $this->success($this->users->find($id), $newStatus ? 'User activated' : 'User deactivated');
+    }
 }
