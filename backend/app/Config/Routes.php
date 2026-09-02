@@ -36,3 +36,9 @@ $routes->group('api/users', ['filter' => ['jwtAuth', 'role:admin']], static func
     $routes->put('(:num)', 'Api\UserController::update/$1');
     $routes->delete('(:num)', 'Api\UserController::delete/$1');
 });
+
+$routes->group('api/customers', ['filter' => ['jwtAuth', 'role:admin,agent']], static function ($routes) {
+    $routes->get('/', 'Api\CustomerController::index');
+    $routes->post('/', 'Api\CustomerController::create');
+    $routes->get('(:num)', 'Api\CustomerController::show/$1');
+});
