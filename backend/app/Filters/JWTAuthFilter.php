@@ -42,10 +42,7 @@ class JWTAuthFilter implements FilterInterface
             ]);
         }
 
-        // Store authenticated user data so controllers can retrieve it.
-        // We use $_SERVER to avoid PHP 8.2 dynamic-property deprecation on
-        // the request object, which has no declared $authUser property.
-        $_SERVER['auth_user'] = [
+        $request->authUser = [
             'id'    => (int) $user['id'],
             'role'  => $user['role'],
             'email' => $user['email'],

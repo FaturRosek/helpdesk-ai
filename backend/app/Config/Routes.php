@@ -21,4 +21,11 @@ $routes->group('api/auth', static function ($routes) {
     $routes->post('register', 'Api\AuthController::register');
     $routes->post('login', 'Api\AuthController::login');
 });
-$routes->get('api/auth/me', 'Api\AuthController::me', ['filter' => 'jwtAuth']);
+$routes->get('api/auth/me', 'Api\AuthController::me', ['filter' => ['jwtAuth']]);
+
+$routes->get('api/admin-only', static function () {
+    return service('response')->setJSON([
+        'success' => true,
+        'message' => 'Halo Admin! Kamu berhasil masuk area khusus admin.',
+    ]);
+}, ['filter' => ['jwtAuth', 'role:admin']]);
