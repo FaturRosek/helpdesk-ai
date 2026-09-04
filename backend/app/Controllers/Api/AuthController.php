@@ -86,8 +86,15 @@ class AuthController extends BaseApiController
 
     public function me()
     {
-        $user = $_SERVER['auth_user'] ?? null;
+        $user = $this->users->find($this->authUserId());
 
-        return $this->success(['user' => $user], 'Current user');
+        return $this->success([
+            'user' => [
+                'id'    => $user['id'],
+                'name'  => $user['name'],
+                'email' => $user['email'],
+                'role'  => $user['role'],
+            ],
+        ], 'Current user');
     }
 }

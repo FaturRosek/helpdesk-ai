@@ -5,6 +5,10 @@ use CodeIgniter\Router\RouteCollection;
 
 /** @var RouteCollection $routes */
 
+$routes->options('(:any)', static function () {
+    return service('response')->setStatusCode(200);
+});
+
 $routes->setAutoRoute(false);
 
 $routes->get('/', static function () {
