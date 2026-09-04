@@ -4,6 +4,9 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import TicketList from "./pages/TicketList";
+import CreateTicket from "./pages/CreateTicket";
+import TicketDetail from "./pages/TicketDetail";
 
 function DummyDashboard() {
   return <h1 className="text-2xl font-bold">Dashboard (placeholder)</h1>;
@@ -21,6 +24,9 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<DummyDashboard />} />
+              <Route path="tickets" element={<TicketList />} />
+              <Route path="tickets/new" element={<CreateTicket />} />
+              <Route path="tickets/:id" element={<TicketDetail />} />
             </Route>
           </Route>
         </Routes>

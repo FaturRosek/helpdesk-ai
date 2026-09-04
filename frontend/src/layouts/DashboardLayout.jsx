@@ -1,5 +1,5 @@
-import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { Outlet, useNavigate, Link } from "react-router-dom";
 
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
@@ -15,8 +15,8 @@ export default function DashboardLayout() {
       <aside className="w-56 bg-slate-900 text-white p-4">
         <div className="text-lg font-bold mb-6">HelpDesk AI</div>
         <nav className="space-y-2 text-sm">
-          <div>Dashboard</div>
-          <div>Tickets</div>
+            <Link to="/dashboard" className="block hover:text-indigo-300">Dashboard</Link>
+            <Link to="/dashboard/tickets" className="block hover:text-indigo-300">Tickets</Link>
         </nav>
       </aside>
 

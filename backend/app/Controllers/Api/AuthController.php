@@ -4,6 +4,7 @@ namespace App\Controllers\Api;
 
 use App\Libraries\JwtService;
 use App\Models\UserModel;
+use App\Models\CustomerModel;
 
 class AuthController extends BaseApiController
 {
@@ -40,6 +41,13 @@ class AuthController extends BaseApiController
         ]);
 
         $user = $this->users->find($id);
+
+        $customerModel = new CustomerModel();
+        $customerModel->insert([
+            'user_id' => $id,
+            'phone'   => $data['phone'] ?? null,
+            'company' => $data['company'] ?? null,
+        ]);
 
         return $this->success([
             'id'    => $user['id'],
