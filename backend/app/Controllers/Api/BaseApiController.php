@@ -26,4 +26,19 @@ class BaseApiController extends ResourceController
             'errors'  => $errors,
         ]);
     }
+
+    protected function authUser(): ?array
+    {
+        return $this->request->authUser ?? null;
+    }
+
+    protected function authUserId(): ?int
+    {
+        return $this->authUser()['id'] ?? null;
+    }
+
+    protected function authUserRole(): ?string
+    {
+        return $this->authUser()['role'] ?? null;
+    }
 }

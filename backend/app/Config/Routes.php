@@ -49,3 +49,24 @@ $routes->group('api/agents', ['filter' => ['jwtAuth', 'role:admin']], static fun
     $routes->get('/', 'Api\AgentController::index');
     $routes->post('/', 'Api\AgentController::create');
 });
+
+$routes->group('api/categories', ['filter' => ['jwtAuth', 'role:admin']], static function ($routes) {
+    $routes->get('/', 'Api\CategoryController::index');
+    $routes->post('/', 'Api\CategoryController::create');
+    $routes->put('(:num)', 'Api\CategoryController::update/$1');
+    $routes->delete('(:num)', 'Api\CategoryController::delete/$1');
+});
+
+$routes->group('api/tickets', ['filter' => ['jwtAuth']], static function ($routes) {
+    $routes->get('/', 'Api\TicketController::index');
+    $routes->post('/', 'Api\TicketController::create');
+    $routes->get('(:num)', 'Api\TicketController::show/$1');
+    $routes->put('(:num)', 'Api\TicketController::update/$1');
+    $routes->post('(:num)/assign', 'Api\TicketController::assign/$1', ['filter' => ['jwtAuth', 'role:admin,agent']]);
+    $routes->get('(:num)/messages', 'Api\TicketController::messages/$1');
+    $routes->post('(:num)/messages', 'Api\TicketController::reply/$1');
+    $routes->post('(:num)/resolve', 'Api\TicketController::resolve/$1', ['filter' => ['jwtAuth', 'role:admin,agent']]);
+    $routes->post('(:num)/close', 'Api\TicketController::close/$1');
+    $routes->post('(:num)/reopen', 'Api\TicketController::reopen/$1');
+    $routes->get('(:num)/history', 'Api\TicketController::history/$1');
+});
