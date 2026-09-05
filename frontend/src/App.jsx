@@ -7,6 +7,9 @@ import Register from "./pages/Register";
 import TicketList from "./pages/TicketList";
 import CreateTicket from "./pages/CreateTicket";
 import TicketDetail from "./pages/TicketDetail";
+import UserManagement from "./pages/admin/UserManagement";
+import AgentManagement from "./pages/admin/AgentManagement";
+import CategoryManagement from "./pages/admin/CategoryManagement";
 
 function DummyDashboard() {
   return <h1 className="text-2xl font-bold">Dashboard (placeholder)</h1>;
@@ -27,6 +30,9 @@ function App() {
               <Route path="tickets" element={<TicketList />} />
               <Route path="tickets/new" element={<CreateTicket />} />
               <Route path="tickets/:id" element={<TicketDetail />} />
+              <Route path="users" element={<UserManagement />} />
+<Route path="agents" element={<AgentManagement />} />
+<Route path="categories" element={<CategoryManagement />} />
             </Route>
           </Route>
         </Routes>
