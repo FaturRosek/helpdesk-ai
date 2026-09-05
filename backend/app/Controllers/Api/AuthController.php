@@ -31,6 +31,8 @@ class AuthController extends BaseApiController
         }
 
         $data = $this->request->getJSON(true);
+        $db   = \Config\Database::connect();
+        $db->transStart();
 
         $id = $this->users->insert([
             'name'          => $data['name'],
@@ -40,14 +42,20 @@ class AuthController extends BaseApiController
             'is_active'     => 1,
         ]);
 
-        $user = $this->users->find($id);
-
         $customerModel = new CustomerModel();
         $customerModel->insert([
             'user_id' => $id,
             'phone'   => $data['phone'] ?? null,
             'company' => $data['company'] ?? null,
         ]);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return $this->error('Registration failed', 500);
+        }
+
+        $user = $this->users->find($id);
 
         return $this->success([
             'id'    => $user['id'],
