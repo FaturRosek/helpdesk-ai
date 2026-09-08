@@ -65,6 +65,25 @@ $routes->group('api/audit-logs', ['filter' => ['jwtAuth', 'role:admin']], static
     $routes->get('/', 'Api\AuditLogController::index');
 });
 
+$routes->group('api/knowledge', ['filter' => ['jwtAuth']], static function ($routes) {
+    $routes->get('/',          'Api\KnowledgeController::index');
+    $routes->get('(:num)',     'Api\KnowledgeController::show/$1');
+    $routes->post('/',         'Api\KnowledgeController::create',         ['filter' => ['jwtAuth', 'role:admin,agent']]);
+    $routes->put('(:num)',     'Api\KnowledgeController::update/$1',      ['filter' => ['jwtAuth', 'role:admin,agent']]);
+    $routes->delete('(:num)',  'Api\KnowledgeController::delete/$1',      ['filter' => ['jwtAuth', 'role:admin']]);
+    $routes->post('(:num)/publish', 'Api\KnowledgeController::publish/$1', ['filter' => ['jwtAuth', 'role:admin,agent']]);
+    $routes->post('(:num)/archive', 'Api\KnowledgeController::archive/$1', ['filter' => ['jwtAuth', 'role:admin,agent']]);
+    $routes->post('(:num)/draft',   'Api\KnowledgeController::draft/$1',   ['filter' => ['jwtAuth', 'role:admin,agent']]);
+});
+
+$routes->group('api/ai', ['filter' => ['jwtAuth']], static function ($routes) {
+    $routes->get('conversations',                      'Api\AiController::getConversations');
+    $routes->post('conversations',                     'Api\AiController::startConversation');
+    $routes->get('conversations/(:num)/messages',      'Api\AiController::getMessages/$1');
+    $routes->post('conversations/(:num)/chat',         'Api\AiController::chat/$1');
+    $routes->delete('conversations/(:num)',             'Api\AiController::deleteConversation/$1');
+});
+
 $routes->group('api/tickets', ['filter' => ['jwtAuth']], static function ($routes) {
     $routes->get('/', 'Api\TicketController::index');
     $routes->post('/', 'Api\TicketController::create');
