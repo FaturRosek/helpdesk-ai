@@ -6,6 +6,7 @@ export default function CustomerManagement() {
   const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", company: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   function loadCustomers() {
     api.get("/customers").then((res) => setCustomers(res.data.data || []));
@@ -20,6 +21,7 @@ export default function CustomerManagement() {
     try {
       await api.post("/customers", form);
       setForm({ name: "", email: "", password: "", phone: "", company: "" });
+      setShowForm(false);
       loadCustomers();
     } catch (err) {
       setError(err.response?.data?.message || "Gagal membuat customer");
@@ -29,50 +31,83 @@ export default function CustomerManagement() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Customer Management</h1>
-
-      <form onSubmit={handleCreate} className="bg-white p-4 rounded shadow mb-6 flex gap-2 items-end flex-wrap">
-        <input placeholder="Nama" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border rounded px-3 py-2 text-sm" required />
-        <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border rounded px-3 py-2 text-sm" required />
-        <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border rounded px-3 py-2 text-sm" required />
-        <input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="border rounded px-3 py-2 text-sm" />
-        <input placeholder="Company" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="border rounded px-3 py-2 text-sm" />
-        <button disabled={loading} className="bg-indigo-600 text-white px-4 py-2 rounded text-sm disabled:opacity-60">
-          {loading ? "Menyimpan..." : "+ Tambah Customer"}
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Pelanggan</h1>
+          <p className="text-sm text-slate-500 mt-0.5">{customers.length} pelanggan terdaftar</p>
+        </div>
+        <button
+          onClick={() => { setShowForm(true); setError(""); }}
+          className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm"
+        >
+          + Tambah Pelanggan
         </button>
-      </form>
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      </div>
 
-      <table className="w-full bg-white rounded shadow text-sm">
-        <thead className="bg-slate-100 text-left">
-          <tr>
-            <th className="p-3">Nama</th>
-            <th className="p-3">Email</th>
-            <th className="p-3">Phone</th>
-            <th className="p-3">Company</th>
-            <th className="p-3">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {customers.map((c) => (
-            <tr key={c.id} className="border-t">
-              <td className="p-3">{c.name}</td>
-              <td className="p-3">{c.email}</td>
-              <td className="p-3">{c.phone || "-"}</td>
-              <td className="p-3">{c.company || "-"}</td>
-              <td className="p-3">
-                <span className={`px-2 py-0.5 rounded text-xs font-medium ${Number(c.is_active) === 1 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                  {Number(c.is_active) === 1 ? "Aktif" : "Nonaktif"}
-                </span>
-              </td>
+      {showForm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h2 className="text-lg font-bold text-slate-800 mb-4">Tambah Pelanggan Baru</h2>
+            {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">{error}</div>}
+            <form onSubmit={handleCreate} className="space-y-4">
+              {[
+                { key: "name", label: "Nama", placeholder: "Nama lengkap" },
+                { key: "email", label: "Email", placeholder: "email@contoh.com", type: "email" },
+                { key: "password", label: "Password", placeholder: "••••••••", type: "password" },
+                { key: "phone", label: "No. Telepon", placeholder: "08xx-xxxx-xxxx" },
+                { key: "company", label: "Perusahaan", placeholder: "Nama perusahaan" },
+              ].map(({ key, label, placeholder, type = "text" }) => (
+                <div key={key}>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">{label}</label>
+                  <input type={type} placeholder={placeholder} value={form[key]}
+                    onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    required={key === "name" || key === "email" || key === "password"} />
+                </div>
+              ))}
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowForm(false)}
+                  className="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50">Batal</button>
+                <button type="submit" disabled={loading}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-60">
+                  {loading ? "Menyimpan..." : "Tambah Pelanggan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              {["Nama", "Email", "Telepon", "Perusahaan", "Status"].map((h) => (
+                <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+              ))}
             </tr>
-          ))}
-          {customers.length === 0 && (
-            <tr><td colSpan={5} className="p-4 text-center text-slate-400">Belum ada customer</td></tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {customers.map((c) => (
+              <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                <td className="px-5 py-3.5 font-medium text-slate-800">{c.name}</td>
+                <td className="px-5 py-3.5 text-slate-500">{c.email}</td>
+                <td className="px-5 py-3.5 text-slate-500">{c.phone || "—"}</td>
+                <td className="px-5 py-3.5 text-slate-500">{c.company || "—"}</td>
+                <td className="px-5 py-3.5">
+                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${Number(c.is_active) === 1 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
+                    {Number(c.is_active) === 1 ? "Aktif" : "Nonaktif"}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {customers.length === 0 && (
+              <tr><td colSpan={5} className="px-5 py-8 text-center text-slate-400">Belum ada pelanggan</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
