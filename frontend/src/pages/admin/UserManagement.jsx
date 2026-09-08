@@ -55,11 +55,15 @@ export default function UserManagement() {
             <tr key={u.id} className="border-t">
               <td className="p-3">{u.name}</td>
               <td className="p-3">{u.email}</td>
-              <td className="p-3">{u.role}</td>
-              <td className="p-3">{u.is_active ? "Aktif" : "Nonaktif"}</td>
+              <td className="p-3 capitalize">{u.role}</td>
               <td className="p-3">
-                <button onClick={() => toggleActive(u.id)} className="text-indigo-600 text-xs">
-                  {u.is_active ? "Nonaktifkan" : "Aktifkan"}
+                <span className={`px-2 py-0.5 rounded text-xs font-medium ${Number(u.is_active) === 1 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                  {Number(u.is_active) === 1 ? "Aktif" : "Nonaktif"}
+                </span>
+              </td>
+              <td className="p-3">
+                <button onClick={() => toggleActive(u.id)} className="text-indigo-600 text-xs hover:underline">
+                  {Number(u.is_active) === 1 ? "Nonaktifkan" : "Aktifkan"}
                 </button>
               </td>
             </tr>

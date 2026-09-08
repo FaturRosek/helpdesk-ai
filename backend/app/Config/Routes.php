@@ -61,6 +61,10 @@ $routes->group('api/categories', ['filter' => ['jwtAuth', 'role:admin']], static
     $routes->delete('(:num)', 'Api\CategoryController::delete/$1');
 });
 
+$routes->group('api/audit-logs', ['filter' => ['jwtAuth', 'role:admin']], static function ($routes) {
+    $routes->get('/', 'Api\AuditLogController::index');
+});
+
 $routes->group('api/tickets', ['filter' => ['jwtAuth']], static function ($routes) {
     $routes->get('/', 'Api\TicketController::index');
     $routes->post('/', 'Api\TicketController::create');

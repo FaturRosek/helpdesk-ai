@@ -7,13 +7,16 @@ import Register from "./pages/Register";
 import TicketList from "./pages/TicketList";
 import CreateTicket from "./pages/CreateTicket";
 import TicketDetail from "./pages/TicketDetail";
+
+// Admin pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import AgentManagement from "./pages/admin/AgentManagement";
+import CustomerManagement from "./pages/admin/CustomerManagement";
 import CategoryManagement from "./pages/admin/CategoryManagement";
-
-function DummyDashboard() {
-  return <h1 className="text-2xl font-bold">Dashboard (placeholder)</h1>;
-}
+import AdminTicketManagement from "./pages/admin/AdminTicketManagement";
+import Reports from "./pages/admin/Reports";
+import AuditLogs from "./pages/admin/AuditLogs";
 
 function App() {
   return (
@@ -26,13 +29,18 @@ function App() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<DummyDashboard />} />
+              <Route index element={<AdminDashboard />} />
               <Route path="tickets" element={<TicketList />} />
               <Route path="tickets/new" element={<CreateTicket />} />
               <Route path="tickets/:id" element={<TicketDetail />} />
+              {/* Admin-only routes */}
               <Route path="users" element={<UserManagement />} />
-<Route path="agents" element={<AgentManagement />} />
-<Route path="categories" element={<CategoryManagement />} />
+              <Route path="agents" element={<AgentManagement />} />
+              <Route path="customers" element={<CustomerManagement />} />
+              <Route path="categories" element={<CategoryManagement />} />
+              <Route path="admin-tickets" element={<AdminTicketManagement />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="audit-logs" element={<AuditLogs />} />
             </Route>
           </Route>
         </Routes>
