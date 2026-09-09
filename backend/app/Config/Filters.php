@@ -38,6 +38,7 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'jwtAuth'       => JWTAuthFilter::class,
         'role'          => RoleFilter::class,
+        'apiKey'        => \App\Filters\ApiKeyFilter::class,
     ];
 
     /**

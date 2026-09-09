@@ -84,6 +84,10 @@ $routes->group('api/ai', ['filter' => ['jwtAuth']], static function ($routes) {
     $routes->delete('conversations/(:num)',             'Api\AiController::deleteConversation/$1');
 });
 
+$routes->group('api/webhook', ['filter' => ['apiKey']], static function ($routes) {
+    $routes->post('chat', 'Api\WebhookController::chat');
+});
+
 $routes->group('api/tickets', ['filter' => ['jwtAuth']], static function ($routes) {
     $routes->get('/', 'Api\TicketController::index');
     $routes->post('/', 'Api\TicketController::create');
