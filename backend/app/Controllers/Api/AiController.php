@@ -3,6 +3,7 @@
 namespace App\Controllers\Api;
 
 use App\Libraries\AiService;
+use App\Libraries\AiToolsService;
 use App\Models\AiConversationModel;
 use App\Models\AiMessageModel;
 
@@ -74,13 +75,30 @@ class AiController extends BaseApiController
         $userMsg = trim($data['message']);
 
         $history = $this->messages->getHistory((int) $conversationId);
-
         $historyForAi = array_map(fn($m) => [
             'role'    => $m['role'],
             'content' => $m['content'],
         ], $history);
 
-        $aiReply = $this->ai->chat($historyForAi, $userMsg);
+        $authUser    = $this->authUser();
+        $toolsService = new AiToolsService($authUser);
+        $tools        = $toolsService->getToolDefinitions();
+
+        $result = $this->ai->chat(
+            $historyForAi,
+            $userMsg,
+            $authUser,
+            $tools,
+            fn(string $name, array $args) => $toolsService->execute($name, $args)
+        );
+
+        $aiReply    = $result['reply'];
+        $toolCalls  = $result['tool_calls'];
+
+        if (empty($history)) {
+            $title = mb_substr($userMsg, 0, 60);
+            $this->conversations->update($conversationId, ['title' => $title]);
+        }
 
         $this->messages->insert([
             'conversation_id' => $conversationId,
@@ -88,15 +106,22 @@ class AiController extends BaseApiController
             'content'         => $userMsg,
         ]);
 
-        $assistantId = $this->messages->insert([
+        $metadata = !empty($toolCalls) ? json_encode(['tool_calls' => $toolCalls]) : null;
+
+        $this->messages->insert([
             'conversation_id' => $conversationId,
             'role'            => 'assistant',
             'content'         => $aiReply,
+            'metadata'        => $metadata,
         ]);
 
         return $this->success([
             'user'      => ['role' => 'user',      'content' => $userMsg],
-            'assistant' => ['role' => 'assistant',  'content' => $aiReply],
+            'assistant' => [
+                'role'       => 'assistant',
+                'content'    => $aiReply,
+                'tool_calls' => $toolCalls,
+            ],
         ], 'OK', 201);
     }
 
@@ -109,7 +134,6 @@ class AiController extends BaseApiController
             return $this->error('Forbidden', 403);
         }
 
-        // Hapus semua messages dulu sebelum conversation (hindari FK constraint issue)
         $this->messages->where('conversation_id', $conversationId)->delete();
         $this->conversations->delete($conversationId);
 
