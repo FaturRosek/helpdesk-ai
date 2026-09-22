@@ -101,3 +101,28 @@ $routes->group('api/tickets', ['filter' => ['jwtAuth']], static function ($route
     $routes->post('(:num)/reopen', 'Api\TicketController::reopen/$1');
     $routes->get('(:num)/history', 'Api\TicketController::history/$1');
 });
+
+$routes->group('api/documents', ['filter' => ['jwtAuth']], static function ($routes) {
+    $routes->get('/', 'Api\DocumentController::index');
+    $routes->post('upload', 'Api\DocumentController::upload', ['filter' => ['jwtAuth', 'role:admin,agent']]);
+    $routes->post('(:num)/process', 'Api\DocumentController::process/$1', ['filter' => ['jwtAuth', 'role:admin,agent']]);
+    $routes->get('search', 'Api\DocumentController::search');
+    $routes->delete('(:num)', 'Api\DocumentController::delete/$1', ['filter' => ['jwtAuth', 'role:admin']]);
+});
+
+$routes->group('api/notifications', ['filter' => ['jwtAuth']], static function ($routes) {
+    $routes->get('/', 'Api\NotificationController::index');
+    $routes->get('unread-count', 'Api\NotificationController::unreadCount');
+    $routes->post('(:num)/read', 'Api\NotificationController::markAsRead/$1');
+    $routes->post('read-all', 'Api\NotificationController::markAllAsRead');
+});
+
+$routes->group('api/reports', ['filter' => ['jwtAuth', 'role:admin']], static function ($routes) {
+    $routes->get('summary', 'Api\ReportController::summary');
+});
+
+$routes->group('api/automation', ['filter' => ['jwtAuth', 'role:admin,agent']], static function ($routes) {
+    $routes->get('status', 'Api\AutomationController::status');
+    $routes->post('auto-assign', 'Api\AutomationController::autoAssign');
+    $routes->post('monitor-sla', 'Api\AutomationController::monitorSla');
+});

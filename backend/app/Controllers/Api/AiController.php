@@ -84,12 +84,17 @@ class AiController extends BaseApiController
         $toolsService = new AiToolsService($authUser);
         $tools        = $toolsService->getToolDefinitions();
 
+        $rag = new \App\Libraries\RagService();
+        $ragContext = $rag->buildRagContext($userMsg);
+        $extraContext = $ragContext['has_context'] ? $ragContext['prompt_text'] : '';
+
         $result = $this->ai->chat(
             $historyForAi,
             $userMsg,
             $authUser,
             $tools,
-            fn(string $name, array $args) => $toolsService->execute($name, $args)
+            fn(string $name, array $args) => $toolsService->execute($name, $args),
+            $extraContext
         );
 
         $aiReply    = $result['reply'];
@@ -106,7 +111,14 @@ class AiController extends BaseApiController
             'content'         => $userMsg,
         ]);
 
-        $metadata = !empty($toolCalls) ? json_encode(['tool_calls' => $toolCalls]) : null;
+        $metaArray = [];
+        if (!empty($toolCalls)) {
+            $metaArray['tool_calls'] = $toolCalls;
+        }
+        if (!empty($ragContext['sources'])) {
+            $metaArray['sources'] = $ragContext['sources'];
+        }
+        $metadata = !empty($metaArray) ? json_encode($metaArray) : null;
 
         $this->messages->insert([
             'conversation_id' => $conversationId,
@@ -121,6 +133,7 @@ class AiController extends BaseApiController
                 'role'       => 'assistant',
                 'content'    => $aiReply,
                 'tool_calls' => $toolCalls,
+                'sources'    => $ragContext['sources'] ?? [],
             ],
         ], 'OK', 201);
     }

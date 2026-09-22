@@ -53,13 +53,19 @@ PROMPT;
         string   $userMessage,
         array    $authUser,
         array    $tools = [],
-        callable $toolExecutor = null
+        callable $toolExecutor = null,
+        string   $extraContext = ''
     ): array {
         if (empty($this->apiKey) || $this->apiKey === 'your-openai-api-key-here') {
             return ['reply' => 'AI belum dikonfigurasi. Silakan set AI_API_KEY di file .env.', 'tool_calls' => []];
         }
 
-        $messages = [['role' => 'system', 'content' => $this->buildSystemPrompt($authUser)]];
+        $systemPrompt = $this->buildSystemPrompt($authUser);
+        if (!empty($extraContext)) {
+            $systemPrompt .= "\n\n" . $extraContext;
+        }
+
+        $messages = [['role' => 'system', 'content' => $systemPrompt]];
 
         foreach ($history as $msg) {
             if (\in_array($msg['role'], ['user', 'assistant'])) {
