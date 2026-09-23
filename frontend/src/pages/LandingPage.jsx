@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 export default function LandingPage() {
   const { user } = useAuth();
   const [activeWorkflow, setActiveWorkflow] = useState(0);
+  const [openFaq, setOpenFaq] = useState(null);
 
   const workflowSteps = [
     {
@@ -61,8 +62,7 @@ export default function LandingPage() {
         "Akses artikel solusi dan panduan mandiri",
       ],
       icon: "👥",
-      gradient: "from-blue-500/10 to-indigo-500/10",
-      border: "border-blue-200",
+      iconBg: "bg-blue-50 text-blue-600",
     },
     {
       name: "Agen Dukungan (Agent)",
@@ -75,8 +75,7 @@ export default function LandingPage() {
         "Pembaruan status cepat (In Progress, Resolved)",
       ],
       icon: "🎧",
-      gradient: "from-purple-500/10 to-pink-500/10",
-      border: "border-purple-200",
+      iconBg: "bg-purple-50 text-purple-600",
     },
     {
       name: "Administrator (Admin)",
@@ -89,8 +88,7 @@ export default function LandingPage() {
         "Inspeksi log audit aktivitas sistem menyeluruh",
       ],
       icon: "⚙️",
-      gradient: "from-amber-500/10 to-orange-500/10",
-      border: "border-amber-200",
+      iconBg: "bg-amber-50 text-amber-600",
     },
     {
       name: "Manajer Dukungan (Manager)",
@@ -103,62 +101,104 @@ export default function LandingPage() {
         "Pemantauan skor kepuasan pelanggan (CSAT)",
       ],
       icon: "📊",
-      gradient: "from-emerald-500/10 to-teal-500/10",
-      border: "border-emerald-200",
+      iconBg: "bg-emerald-50 text-emerald-600",
+    },
+  ];
+
+  const features = [
+    {
+      title: "Manajemen Dokumen & RAG",
+      desc: "Unggah panduan SOP, buku manual teknis, dan dokumen kebijakan. Sistem otomatis memecah berkas menjadi chunk teks untuk menjawab kueri pelanggan dengan sumber otentik.",
+      icon: "📚",
+      color: "bg-blue-50 text-blue-600 border-blue-100",
+    },
+    {
+      title: "Mesin Otomasi SLA",
+      desc: "Pemantauan tenggat resolusi per tingkat prioritas. Mendeteksi indikasi breach secara proaktif, mengeskalasi prioritas tiket, dan mengirim sinyal notifikasi ke tim.",
+      icon: "⚡",
+      color: "bg-purple-50 text-purple-600 border-purple-100",
+    },
+    {
+      title: "AI Assistant & Function Calling",
+      desc: "Asisten AI terintegrasi yang dapat mengecek status tiket pelanggan, membuat tiket baru secara otomatis, dan mencari referensi pengetahuan seketika.",
+      icon: "🤖",
+      color: "bg-indigo-50 text-indigo-600 border-indigo-100",
+    },
+    {
+      title: "Catatan Internal Khusus Staf",
+      desc: "Fitur komunikasi internal memungkinkan agen dan admin saling berdiskusi dalam konteks tiket tanpa terlihat oleh pelanggan untuk penanganan yang akurat.",
+      icon: "🔒",
+      color: "bg-rose-50 text-rose-600 border-rose-100",
+    },
+    {
+      title: "Analitik SLA & Kepuasan (CSAT)",
+      desc: "Dashboard analitik komprehensif untuk memantau waktu resolusi tiket, tingkat kepatuhan SLA, kinerja agen, dan indeks kepuasan pelanggan secara real-time.",
+      icon: "📈",
+      color: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    },
+    {
+      title: "Pusat Notifikasi Terpadu",
+      desc: "Peringatan penugasan tiket baru, notifikasi batas waktu SLA, dan pembaruan respon tiket dikirimkan langsung ke navbar pengguna dengan indikator baca real-time.",
+      icon: "🔔",
+      color: "bg-amber-50 text-amber-600 border-amber-100",
     },
   ];
 
   const faqs = [
     {
       q: "Bagaimana cara kerja AI Assistant dan RAG di HelpDesk AI?",
-      a: "AI Assistant memanfaatkan Large Language Model yang terhubung dengan basis pengetahuan dokumen perusahaan Anda melalui Retrieval-Augmented Generation (RAG). Setiap pertanyaan dicocokkan dengan dokumen SOP yang relevan untuk memberikan jawaban akurat dengan referensi sumber.",
+      a: "AI Assistant memanfaatkan model bahasa yang terhubung dengan basis pengetahuan dokumen perusahaan Anda melalui Retrieval-Augmented Generation (RAG). Setiap pertanyaan dicocokkan dengan dokumen SOP yang relevan untuk memberikan jawaban akurat dengan referensi sumber.",
     },
     {
-      q: "Bagaimana sistem menghitung dan memantau SLA?",
+      q: "Bagaimana sistem menghitung dan memantau batas waktu SLA?",
       a: "Setiap tiket otomatis dihitung batas waktunya berdasarkan tingkat prioritas (Urgent: 2 jam, High: 8 jam, Medium: 24 jam, Low: 48 jam). Sistem terus memantau tiket aktif, memicu eskalasi prioritas jika mendekati batas, dan mengirimkan notifikasi instan kepada tim.",
     },
     {
       q: "Apakah agen bisa menambahkan catatan yang tidak bisa dilihat pelanggan?",
-      a: "Ya, sistem memiliki fitur Internal Notes khusus agen dan admin. Catatan tersebut hanya dapat dibaca oleh staf internal untuk koordinasi teknis.",
+      a: "Ya, sistem memiliki fitur Internal Notes khusus staf agen dan admin. Catatan tersebut hanya dapat dibaca oleh tim internal untuk koordinasi teknis.",
     },
     {
-      q: "Format dokumen apa saja yang didukung untuk diindeks RAG?",
+      q: "Format dokumen apa saja yang didukung untuk diindeks oleh sistem?",
       a: "Sistem mendukung berkas teks seperti TXT, Markdown, CSV, DOCX, dan berkas panduan PDF yang diekstrak menjadi potongan teks semantik (chunks).",
     },
   ];
 
+  function toggleFaq(index) {
+    setOpenFaq(openFaq === index ? null : index);
+  }
+
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white font-sans">
-      <nav className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </div>
-            <div>
-              <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-indigo-300">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-slate-900 tracking-tight">
                 HelpDesk AI
               </span>
-              <span className="hidden sm:inline-block ml-2 text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-semibold">
+              <span className="hidden sm:inline-block text-[10px] bg-blue-50 text-blue-700 border border-blue-200/80 px-2 py-0.5 rounded-full font-semibold">
                 v2.0 Enterprise
               </span>
             </div>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <a href="#workflow" className="hover:text-white transition-colors">Alur Sistem</a>
-            <a href="#roles" className="hover:text-white transition-colors">Peran Pengguna</a>
-            <a href="#features" className="hover:text-white transition-colors">Fitur Unggulan</a>
-            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+            <a href="#workflow" className="hover:text-blue-600 transition-colors">Alur Sistem</a>
+            <a href="#roles" className="hover:text-blue-600 transition-colors">Peran Pengguna</a>
+            <a href="#features" className="hover:text-blue-600 transition-colors">Fitur Unggulan</a>
+            <a href="#faq" className="hover:text-blue-600 transition-colors">FAQ</a>
           </div>
 
           <div className="flex items-center gap-3">
             {user ? (
               <Link
                 to="/dashboard"
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl transition-all shadow-lg shadow-indigo-600/30 flex items-center gap-1.5"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl transition-all shadow-md shadow-blue-600/20 flex items-center gap-1.5"
               >
                 <span>Buka Dashboard</span>
                 <span className="text-xs">&rarr;</span>
@@ -167,13 +207,13 @@ export default function LandingPage() {
               <>
                 <Link
                   to="/login"
-                  className="text-xs sm:text-sm font-medium text-slate-300 hover:text-white px-3 py-2 transition-colors"
+                  className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-blue-600 px-3 py-2 transition-colors"
                 >
                   Masuk
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl transition-all shadow-md shadow-indigo-600/30"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl transition-all shadow-md shadow-blue-600/20"
                 >
                   Daftar Akun
                 </Link>
@@ -183,102 +223,98 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <section className="relative pt-20 pb-24 lg:pt-28 lg:pb-32 overflow-hidden">
-        <div className="absolute inset-0 -z-10 flex items-center justify-center">
-          <div className="w-[600px] h-[600px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none"></div>
-          <div className="w-[450px] h-[450px] bg-purple-600/15 rounded-full blur-[100px] pointer-events-none -translate-x-32 translate-y-24"></div>
-        </div>
-
+      <section className="relative pt-16 pb-20 lg:pt-24 lg:pb-28 overflow-hidden bg-gradient-to-b from-slate-50/60 via-white to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs font-semibold text-indigo-300 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
               Platform Dukungan Pelanggan Cerdas Terintegrasi
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.15]">
               Solusi Tiket Lebih Cepat, <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-violet-300 to-purple-400">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                 Agen Lebih Efektif dengan AI
               </span>
             </h1>
 
-            <p className="text-base sm:text-lg text-slate-400 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
               HelpDesk AI menggabungkan percakapan cerdas LLM, pencarian dokumen RAG (Retrieval-Augmented Generation), otomasi SLA, dan alur kerja agen terpadu dalam satu sistem yang tangguh.
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 to={user ? "/dashboard" : "/register"}
-                className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm shadow-xl shadow-indigo-600/40 transition-all transform hover:-translate-y-0.5"
+                className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm shadow-xl shadow-blue-600/25 transition-all transform hover:-translate-y-0.5"
               >
                 {user ? "Masuk ke Dashboard Saya" : "Mulai Registrasi Gratis"}
               </Link>
               <a
                 href="#workflow"
-                className="w-full sm:w-auto px-8 py-3.5 bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 border border-slate-700 font-semibold rounded-xl text-sm transition-all"
+                className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold rounded-xl text-sm transition-all shadow-sm"
               >
                 Pelajari Alur Kerja Sistem &darr;
               </a>
             </div>
 
-            <div className="pt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 font-medium">
+            <div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium">
               <span className="flex items-center gap-1.5">
-                <span className="text-emerald-400">✓</span> RAG Document Retrieval
+                <span className="text-blue-600 font-bold">✓</span> RAG Document Retrieval
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="text-emerald-400">✓</span> Otomasi SLA & Escalation
+                <span className="text-blue-600 font-bold">✓</span> Otomasi SLA & Escalation
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="text-emerald-400">✓</span> Auto Assignment Tiket
+                <span className="text-blue-600 font-bold">✓</span> Auto Assignment Tiket
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="text-emerald-400">✓</span> 4 Tingkat Akses RBAC
+                <span className="text-blue-600 font-bold">✓</span> 4 Tingkat Akses RBAC
               </span>
             </div>
           </div>
 
-          <div className="mt-16 max-w-5xl mx-auto bg-slate-800/60 border border-slate-700/70 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-xl">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-700/60 text-xs text-slate-400">
+          <div className="mt-14 max-w-5xl mx-auto bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xl shadow-slate-200/50">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 text-xs text-slate-500">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-red-500/80"></span>
-                <span className="w-3 h-3 rounded-full bg-amber-500/80"></span>
-                <span className="w-3 h-3 rounded-full bg-emerald-500/80"></span>
-                <span className="ml-2 font-mono text-[11px] text-slate-300">helpdesk-ai // intelligent-flow-monitor</span>
+                <span className="w-3 h-3 rounded-full bg-rose-500"></span>
+                <span className="w-3 h-3 rounded-full bg-amber-400"></span>
+                <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                <span className="ml-2 font-mono text-[11px] text-slate-600">helpdesk-ai // intelligent-flow-monitor</span>
               </div>
-              <span className="bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded text-[10px] font-semibold">
+              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 Sistem Operasional Aktif
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-              <div className="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
-                <p className="text-[11px] font-semibold uppercase text-slate-400">Pelanggan Mengirim Pertanyaan</p>
-                <p className="text-sm font-medium text-slate-200 mt-2 italic">
+              <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80">
+                <p className="text-[11px] font-semibold uppercase text-slate-500 tracking-wide">Pelanggan Mengirim Pertanyaan</p>
+                <p className="text-sm font-medium text-slate-800 mt-2 italic">
                   "Bagaimana cara mereset password akun email korporat kami?"
                 </p>
-                <div className="mt-3 text-[10px] bg-indigo-950/60 text-indigo-300 p-2 rounded-lg border border-indigo-900/50">
-                  ⚡ AI Assistant menganalisis intent & kategori: Keamanan Akun
+                <div className="mt-3 text-[10px] bg-blue-50 text-blue-700 p-2 rounded-lg border border-blue-200/60 font-medium">
+                  ⚡ AI Assistant menganalisis intent: Keamanan Akun
                 </div>
               </div>
 
-              <div className="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
-                <p className="text-[11px] font-semibold uppercase text-slate-400">RAG Context & Chunk Matching</p>
-                <p className="text-xs text-slate-300 mt-2">
-                  Ditemukan relevansi di <span className="text-indigo-400 font-medium">SOP-Keamanan-2026.pdf</span> (Bagian #3)
+              <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80">
+                <p className="text-[11px] font-semibold uppercase text-slate-500 tracking-wide">RAG Context & Chunk Matching</p>
+                <p className="text-xs text-slate-700 mt-2">
+                  Ditemukan referensi di <span className="text-blue-600 font-semibold underline">SOP-Keamanan-2026.pdf</span> (Bagian #3)
                 </p>
-                <div className="mt-3 text-[10px] bg-purple-950/60 text-purple-300 p-2 rounded-lg border border-purple-900/50">
+                <div className="mt-3 text-[10px] bg-purple-50 text-purple-700 p-2 rounded-lg border border-purple-200/60 font-medium">
                   🎯 Skor Relevansi 98% &bull; Menyiapkan solusi terverifikasi
                 </div>
               </div>
 
-              <div className="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
-                <p className="text-[11px] font-semibold uppercase text-slate-400">SLA Engine & Penugasan</p>
-                <p className="text-xs text-slate-300 mt-2">
-                  Prioritas ditentukan: <span className="text-amber-400 font-semibold">MEDIUM (24 Jam SLA)</span>
+              <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80">
+                <p className="text-[11px] font-semibold uppercase text-slate-500 tracking-wide">SLA Engine & Penugasan</p>
+                <p className="text-xs text-slate-700 mt-2">
+                  Prioritas ditentukan: <span className="text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-semibold text-[11px]">MEDIUM (24 Jam SLA)</span>
                 </p>
-                <div className="mt-3 text-[10px] bg-emerald-950/60 text-emerald-300 p-2 rounded-lg border border-emerald-900/50">
-                  ✅ Ditugaskan otomatis ke Agen tersedia dengan notifikasi instan
+                <div className="mt-3 text-[10px] bg-emerald-50 text-emerald-700 p-2 rounded-lg border border-emerald-200/60 font-medium">
+                  ✓ Ditugaskan otomatis ke Agen tersedia dengan notifikasi instan
                 </div>
               </div>
             </div>
@@ -286,67 +322,69 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="workflow" className="py-20 bg-slate-950/80 border-t border-slate-800 relative">
+      <section id="workflow" className="py-20 bg-slate-50/70 border-t border-slate-200 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
-            <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
-              End-to-End Pipeline
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+              END-TO-END PIPELINE
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
-              Alur Kerja Proyek HelpDesk AI
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+              Alur Layanan Cerdas HelpDesk AI
             </h2>
-            <p className="text-sm sm:text-base text-slate-400">
-              Setiap keluhan pelanggan melalui tahapan cerdas yang mengoptimalkan kolaborasi AI dan manusia demi kepuasan maksimal.
+            <p className="text-sm sm:text-base text-slate-600">
+              Setiap interaksi pelanggan diproses melalui tahapan cerdas yang mengoptimalkan kolaborasi AI dan staf agen demi resolusi prima.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {workflowSteps.map((item, idx) => (
               <div
                 key={idx}
                 onClick={() => setActiveWorkflow(idx)}
-                className={`cursor-pointer rounded-2xl p-5 border transition-all duration-300 ${
+                className={`cursor-pointer rounded-2xl p-5 border transition-all duration-200 flex flex-col justify-between ${
                   activeWorkflow === idx
-                    ? "bg-slate-800/90 border-indigo-500 shadow-xl shadow-indigo-500/10 scale-[1.02]"
-                    : "bg-slate-900/50 border-slate-800 hover:border-slate-700 hover:bg-slate-900/90"
+                    ? "bg-white border-blue-600 shadow-lg shadow-blue-500/10 ring-2 ring-blue-600/20"
+                    : "bg-white border-slate-200 hover:border-slate-300 hover:shadow-md"
                 }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-gradient-to-r ${item.color} text-white`}>
-                    Tahap {item.step}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono">{item.badge}</span>
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r ${item.color} text-white`}>
+                      Tahap {item.step}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">{item.badge}</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed mb-4">{item.desc}</p>
                 </div>
-                <h3 className="text-base font-bold text-slate-100 mb-2">{item.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed mb-4">{item.desc}</p>
-                <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px]">
-                  <span className="text-indigo-400 font-semibold">{item.stats}</span>
-                  <span className="text-slate-500">&rarr;</span>
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="text-blue-600 font-semibold">{item.stats}</span>
+                  <span className="text-slate-400 font-bold">&rarr;</span>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-12 bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="mt-10 bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
             <div className="space-y-2 max-w-xl">
-              <span className="text-xs font-semibold text-indigo-400">Fokus Tahap Terpilih</span>
-              <h4 className="text-xl font-bold text-white">
+              <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Fokus Tahap Terpilih</span>
+              <h4 className="text-lg sm:text-xl font-bold text-slate-900">
                 Tahap {workflowSteps[activeWorkflow].step}: {workflowSteps[activeWorkflow].title}
               </h4>
-              <p className="text-sm text-slate-300 leading-relaxed">
+              <p className="text-sm text-slate-600 leading-relaxed">
                 {workflowSteps[activeWorkflow].desc}
               </p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <Link
                 to="/dashboard/ai-chat"
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-colors shadow-md"
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors shadow-md shadow-blue-600/20"
               >
                 Coba Fitur AI Chat
               </Link>
               <Link
                 to="/dashboard/tickets/new"
-                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors"
+                className="px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors shadow-sm"
               >
                 Buat Tiket Uji Coba
               </Link>
@@ -355,16 +393,16 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="roles" className="py-20 bg-slate-900 border-t border-slate-800">
+      <section id="roles" className="py-20 bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
-            <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
-              Akses Berbasis Peran (RBAC)
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+              AKSES BERBASIS PERAN (RBAC)
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
               Dibuat untuk 4 Peran Pengguna Utama
             </h2>
-            <p className="text-sm sm:text-base text-slate-400">
+            <p className="text-sm sm:text-base text-slate-600">
               Setiap pengguna mendapatkan ruang kerja yang disesuaikan secara presisi dengan tanggung jawab masing-masing.
             </p>
           </div>
@@ -373,32 +411,34 @@ export default function LandingPage() {
             {roles.map((r, idx) => (
               <div
                 key={idx}
-                className="bg-slate-850 bg-slate-950/60 rounded-2xl border border-slate-800 p-6 flex flex-col justify-between hover:border-indigo-500/50 transition-all hover:shadow-xl hover:shadow-indigo-500/5"
+                className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-200"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-3xl">{r.icon}</span>
-                    <span className="text-[10px] font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded-full">
+                    <span className={`w-10 h-10 rounded-xl ${r.iconBg} flex items-center justify-center text-xl`}>
+                      {r.icon}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
                       {r.roleTag}
                     </span>
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">{r.name}</h3>
-                    <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">{r.desc}</p>
+                    <h3 className="text-base font-bold text-slate-900">{r.name}</h3>
+                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{r.desc}</p>
                   </div>
                   <div className="pt-2 space-y-2">
                     {r.features.map((feat, fIdx) => (
-                      <div key={fIdx} className="flex items-start gap-2 text-xs text-slate-300">
-                        <span className="text-indigo-400 font-bold shrink-0">✓</span>
+                      <div key={fIdx} className="flex items-start gap-2 text-xs text-slate-600">
+                        <span className="text-blue-600 font-bold shrink-0">✓</span>
                         <span className="leading-snug">{feat}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="pt-6 mt-6 border-t border-slate-800/80">
+                <div className="pt-6 mt-6 border-t border-slate-100">
                   <Link
                     to="/login"
-                    className="w-full block text-center py-2 bg-slate-800 hover:bg-indigo-600 hover:text-white text-slate-300 text-xs font-semibold rounded-lg transition-colors"
+                    className="w-full block text-center py-2 bg-slate-50 hover:bg-blue-600 hover:text-white text-slate-700 text-xs font-semibold rounded-lg border border-slate-200 transition-colors"
                   >
                     Masuk sebagai {r.name.split(" ")[0]}
                   </Link>
@@ -409,136 +449,109 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="features" className="py-20 bg-slate-950 border-t border-slate-800">
+      <section id="features" className="py-20 bg-slate-50/70 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
-            <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
-              Teknologi Mutakhir
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+              KAPABILITAS UTAMA
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
-              Fitur Lengkap Sesuai Dokumen PRD
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+              Fitur & Kapabilitas Unggulan Sistem
             </h2>
-            <p className="text-sm sm:text-base text-slate-400">
-              Arsitektur terintegrasi mulai dari autentikasi JWT hingga visualisasi analitik performa eksekutif.
+            <p className="text-sm sm:text-base text-slate-600">
+              Solusi customer support cerdas yang dirancang untuk kecepatan respon, kepatuhan SLA, dan kemudahan manajemen.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
-                📚
-              </div>
-              <h3 className="text-base font-bold text-white">Manajemen Dokumen & RAG</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Unggah panduan SOP, buku manual teknis, dan dokumen kebijakan. Sistem otomatis memecah berkas menjadi chunk teks untuk menjawab kueri pelanggan dengan sumber otentik.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg font-bold">
-                ⚡
-              </div>
-              <h3 className="text-base font-bold text-white">Mesin Otomasi SLA</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Pemantauan tenggat resolusi per tingkat prioritas. Mendeteksi indikasi breach secara proaktif, mengeskalasi prioritas tiket, dan mengirim sinyal notifikasi ke admin dan agen.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg font-bold">
-                🤖
-              </div>
-              <h3 className="text-base font-bold text-white">AI Agent & Function Calling</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Asisten AI dapat menjalankan tool internal seperti pembuatan tiket otomatis, pemeriksaan status tiket pelanggan, perangkuman pesan, dan pencarian basis data.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center text-lg font-bold">
-                🔒
-              </div>
-              <h3 className="text-base font-bold text-white">Catatan Internal Rahasia</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Fitur pesan internal memungkinkan agen dan admin saling berdiskusi dalam konteks tiket tanpa terlihat oleh pelanggan, menjamin koordinasi penanganan yang mulus.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg font-bold">
-                📈
-              </div>
-              <h3 className="text-base font-bold text-white">Analitik SLA & Kepuasan (CSAT)</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Visualisasi 6 metrik utama fase 17: Statistik Tiket, Resolution Time, SLA Performance, Kinerja Agen, Statistik Kategori, dan Skor Kepuasan Pelanggan.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg font-bold">
-                🔔
-              </div>
-              <h3 className="text-base font-bold text-white">Pusat Notifikasi Interaktif</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Peringatan penugasan tiket baru, notifikasi batas waktu SLA, dan pembaruan respon tiket dikirimkan langsung ke navbar pengguna dengan status baca real-time.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="faq" className="py-20 bg-slate-900 border-t border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="text-center space-y-2">
-            <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
-              Pertanyaan Umum
-            </span>
-            <h2 className="text-3xl font-extrabold text-white">Pertanyaan yang Sering Diajukan</h2>
-          </div>
-
-          <div className="divide-y divide-slate-800 border-y border-slate-800">
-            {faqs.map((faq, idx) => (
-              <div key={idx} className="py-5 space-y-2">
-                <h3 className="text-base font-bold text-slate-200">{faq.q}</h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{faq.a}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feat, idx) => (
+              <div
+                key={idx}
+                className="bg-white border border-slate-200 rounded-2xl p-6 space-y-3 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className={`w-10 h-10 rounded-xl ${feat.color} border flex items-center justify-center text-lg font-bold`}>
+                  {feat.icon}
+                </div>
+                <h3 className="text-base font-bold text-slate-900">{feat.title}</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {feat.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-16 bg-gradient-to-b from-slate-900 to-indigo-950 border-t border-slate-800 text-center">
-        <div className="max-w-4xl mx-auto px-4 space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
-            Tingkatkan Standar Layanan Pelanggan Sekarang
-          </h2>
-          <p className="text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
-            Bergabunglah dengan ekosistem HelpDesk AI untuk menyelesaikan tiket lebih cepat, menata dokumen pengetahuan, dan memantau kepatuhan SLA secara terukur.
-          </p>
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              to="/register"
-              className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm shadow-xl shadow-indigo-600/30 transition-all"
-            >
-              Daftar Akun Baru
-            </Link>
-            <Link
-              to="/login"
-              className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold rounded-xl text-sm transition-all"
-            >
-              Masuk Portal
-            </Link>
+      <section id="faq" className="py-20 bg-white border-t border-slate-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="text-center space-y-2">
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+              PERTANYAAN UMUM
+            </span>
+            <h2 className="text-3xl font-extrabold text-slate-900">Pertanyaan yang Sering Diajukan</h2>
+            <p className="text-sm text-slate-500">Jawaban seputar fungsionalitas dan pemanfaatan sistem HelpDesk AI</p>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((faq, idx) => (
+              <div
+                key={idx}
+                className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm transition-colors"
+              >
+                <button
+                  onClick={() => toggleFaq(idx)}
+                  className="w-full px-5 py-4 text-left flex items-center justify-between text-slate-900 hover:bg-slate-50 font-semibold text-sm transition-colors"
+                >
+                  <span>{faq.q}</span>
+                  <span className={`text-slate-400 text-xs transition-transform duration-200 ${openFaq === idx ? "rotate-180" : ""}`}>
+                    ▼
+                  </span>
+                </button>
+                {openFaq === idx && (
+                  <div className="px-5 pb-4 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <footer className="bg-slate-950 border-t border-slate-800/80 py-8 text-xs text-slate-500">
+      <section className="py-16 bg-slate-50 border-t border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 rounded-3xl p-8 sm:p-12 text-center text-white shadow-xl shadow-blue-600/20 space-y-6">
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              Tingkatkan Standar Layanan Pelanggan Sekarang
+            </h2>
+            <p className="text-sm sm:text-base text-blue-100 max-w-xl mx-auto leading-relaxed">
+              Bergabunglah dengan ekosistem HelpDesk AI untuk menyelesaikan tiket lebih cepat, menata dokumen pengetahuan, dan memantau kepatuhan SLA secara terukur.
+            </p>
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                to="/register"
+                className="px-8 py-3.5 bg-white hover:bg-slate-100 text-blue-700 font-bold rounded-xl text-sm shadow-md transition-all transform hover:-translate-y-0.5"
+              >
+                Daftar Akun Baru
+              </Link>
+              <Link
+                to="/login"
+                className="px-8 py-3.5 bg-blue-700/60 hover:bg-blue-700 border border-blue-400/40 text-white font-semibold rounded-xl text-sm transition-all"
+              >
+                Masuk Portal
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="bg-white border-t border-slate-200 py-8 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-6 h-6 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
               H
             </div>
-            <span className="font-semibold text-slate-400">HelpDesk AI</span>
+            <span className="font-semibold text-slate-800">HelpDesk AI</span>
             <span>&bull;</span>
             <span>Platform Customer Support & SLA Automation</span>
           </div>
