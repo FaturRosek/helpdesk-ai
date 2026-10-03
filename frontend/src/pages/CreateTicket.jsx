@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
 
 export default function CreateTicket() {
   const navigate = useNavigate();
@@ -10,19 +13,18 @@ export default function CreateTicket() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  if (user?.role !== "customer") {
+  if (user?.role !== "customer" && user?.role !== "admin") {
     return (
       <div className="max-w-lg">
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
-          <p className="text-2xl mb-3">⚠️</p>
-          <p className="font-semibold text-amber-800 text-lg mb-2">Akses Ditolak</p>
-          <p className="text-amber-700 text-sm mb-4">
-            Hanya pelanggan (<strong>customer</strong>) yang dapat membuat tiket baru.
+        <Card padding="p-6" className="text-center bg-amber-50/50 border-amber-200">
+          <p className="font-bold text-amber-800 text-lg mb-2">Access Notice</p>
+          <p className="text-amber-700 text-xs mb-4">
+            Only customers and administrators can create new support tickets.
           </p>
-          <Link to="/dashboard/tickets" className="text-indigo-600 text-sm font-medium hover:underline">
-            ← Kembali ke daftar tiket
+          <Link to="/dashboard/tickets" className="text-blue-600 text-xs font-semibold hover:underline">
+            &larr; Back to Tickets
           </Link>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -35,66 +37,69 @@ export default function CreateTicket() {
       await api.post("/tickets", form);
       navigate("/dashboard/tickets");
     } catch (err) {
-      setError(err.response?.data?.message || "Gagal membuat tiket");
+      setError(err.response?.data?.message || "Failed to create ticket.");
     } finally {
       setLoading(false);
     }
   }
 
   const PRIORITIES = [
-    { value: "LOW", label: "Rendah", desc: "Tidak mendesak" },
-    { value: "MEDIUM", label: "Sedang", desc: "Perlu ditangani segera" },
-    { value: "HIGH", label: "Tinggi", desc: "Masalah signifikan" },
-    { value: "URGENT", label: "Urgent", desc: "Butuh respon segera" },
+    { value: "LOW", label: "Low", desc: "Non-urgent query" },
+    { value: "MEDIUM", label: "Medium", desc: "Standard SLA (24h)" },
+    { value: "HIGH", label: "High", desc: "Business impacting (8h)" },
+    { value: "URGENT", label: "Urgent", desc: "Critical outage (2h)" },
   ];
 
   return (
-    <div className="max-w-2xl space-y-5">
+    <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Buat Tiket Baru</h1>
-        <p className="text-sm text-slate-500 mt-0.5">Jelaskan masalah yang Anda alami dan tim kami akan segera membantu</p>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Create Support Ticket</h1>
+        <p className="text-sm text-slate-500 mt-0.5">
+          Describe the issue in detail to receive fast, AI-assisted resolution.
+        </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+      <Card padding="p-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-3 rounded-lg mb-5">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Subjek</label>
-            <input
-              placeholder="Deskripsikan masalah secara singkat..."
-              value={form.subject}
-              onChange={(e) => setForm({ ...form, subject: e.target.value })}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all"
-              required
-            />
-          </div>
+          <Input
+            label="Subject"
+            placeholder="Brief summary of the issue..."
+            required
+            value={form.subject}
+            onChange={(e) => setForm({ ...form, subject: e.target.value })}
+          />
 
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Deskripsi</label>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Description <span className="text-red-500">*</span>
+            </label>
             <textarea
-              placeholder="Jelaskan masalah Anda secara detail. Semakin detail, semakin cepat kami bisa membantu..."
+              placeholder="Provide context, error messages, and reproduction steps..."
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all resize-none h-32"
+              className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 resize-none h-32 transition-all"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Prioritas</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-slate-700">
+              Priority Level
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {PRIORITIES.map((p) => (
                 <label
                   key={p.value}
-                  className={`cursor-pointer border-2 rounded-lg p-3 transition-all ${
+                  className={`cursor-pointer rounded-lg p-3 border transition-all ${
                     form.priority === p.value
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-slate-200 hover:border-slate-300"
+                      ? "border-blue-600 bg-blue-50/60 ring-1 ring-blue-600/20 shadow-xs"
+                      : "border-slate-200 hover:border-slate-300 bg-white"
                   }`}
                 >
                   <input
@@ -105,30 +110,26 @@ export default function CreateTicket() {
                     onChange={(e) => setForm({ ...form, priority: e.target.value })}
                     className="sr-only"
                   />
-                  <p className="font-semibold text-sm text-slate-800">{p.label}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{p.desc}</p>
+                  <p className="font-bold text-xs text-slate-900">{p.label}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{p.desc}</p>
                 </label>
               ))}
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button
+          <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
+            <Button
               type="submit"
               disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition-colors disabled:opacity-60"
             >
-              {loading ? "Mengirim..." : "Kirim Tiket"}
-            </button>
-            <Link
-              to="/dashboard/tickets"
-              className="px-6 py-2.5 rounded-lg text-sm font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
-            >
-              Batal
+              {loading ? "Submitting..." : "Submit Ticket"}
+            </Button>
+            <Link to="/dashboard/tickets">
+              <Button variant="secondary">Cancel</Button>
             </Link>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }
