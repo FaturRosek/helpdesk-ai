@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 import api from "../../services/api";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Skeleton from "../../components/ui/Skeleton";
+import EmptyState from "../../components/ui/EmptyState";
 
 export default function DocumentManagement() {
   const [documents, setDocuments] = useState([]);
@@ -21,8 +25,8 @@ export default function DocumentManagement() {
     try {
       const res = await api.get("/documents");
       setDocuments(res.data.data || []);
-    } catch {
-      setError("Gagal memuat daftar dokumen.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load documents.");
     } finally {
       setLoading(false);
     }
@@ -43,12 +47,12 @@ export default function DocumentManagement() {
       const res = await api.post("/documents/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setSuccess(`Dokumen "${res.data.data.file_name}" berhasil diproses ke dalam ${res.data.data.chunk_count} chunk teks.`);
+      setSuccess(`Document "${res.data.data.file_name}" successfully indexed into ${res.data.data.chunk_count} chunks.`);
       setFile(null);
       e.target.reset();
       fetchDocuments();
-    } catch {
-      setError(err.response?.data?.message || "Gagal mengunggah dokumen.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to upload document.");
     } finally {
       setUploading(false);
     }
@@ -57,21 +61,21 @@ export default function DocumentManagement() {
   async function handleReprocess(id) {
     try {
       await api.post(`/documents/${id}/process`);
-      setSuccess("Dokumen berhasil diproses ulang.");
+      setSuccess("Document reprocessed successfully.");
       fetchDocuments();
-    } catch {
-      setError("Gagal memproses ulang dokumen.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to reprocess document.");
     }
   }
 
   async function handleDelete(id) {
-    if (!confirm("Hapus dokumen ini beserta semua potongan chunk pengetahuan?")) return;
+    if (!confirm("Delete this document and all its indexed chunks?")) return;
     try {
       await api.delete(`/documents/${id}`);
-      setSuccess("Dokumen berhasil dihapus.");
+      setSuccess("Document deleted successfully.");
       fetchDocuments();
-    } catch {
-      setError("Gagal menghapus dokumen.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete document.");
     }
   }
 
@@ -83,8 +87,8 @@ export default function DocumentManagement() {
     try {
       const res = await api.get(`/documents/search?q=${encodeURIComponent(searchQuery)}`);
       setSearchResults(res.data.data || []);
-    } catch {
-      setError("Pencarian RAG gagal.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Semantic search test failed.");
     } finally {
       setSearching(false);
     }
@@ -100,160 +104,162 @@ export default function DocumentManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Manajemen Dokumen & RAG</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Documents & Knowledge RAG</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Unggah SOP, buku panduan, atau berkas pengetahuan untuk diindeks oleh AI Retrieval-Augmented Generation
+            Upload SOPs, manuals, or policy files to index into semantic chunks for AI Assistant retrieval.
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center justify-between">
+        <div className="p-3.5 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 font-bold">&times;</button>
+          <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">&times;</button>
         </div>
       )}
 
       {success && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 flex items-center justify-between">
+        <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 flex items-center justify-between">
           <span>{success}</span>
-          <button onClick={() => setSuccess(null)} className="text-green-500 hover:text-green-700 font-bold">&times;</button>
+          <button onClick={() => setSuccess(null)} className="text-emerald-500 hover:text-emerald-700 font-bold cursor-pointer">&times;</button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-          <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-semibold">
-              +
-            </span>
-            Unggah Dokumen Baru
-          </h2>
-          <form onSubmit={handleUpload} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
-                Pilih Berkas (PDF, TXT, MD, CSV, DOCX)
-              </label>
-              <input
-                type="file"
-                required
-                onChange={(e) => setFile(e.target.files[0])}
-                className="w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer border border-slate-200 rounded-lg p-1.5"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={uploading || !file}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition-colors shadow-sm flex items-center justify-center gap-2"
-            >
-              {uploading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Memproses & Chunking...
-                </>
-              ) : (
-                "Unggah & Ekstrak Pengetahuan"
-              )}
-            </button>
-          </form>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="lg:col-span-4 space-y-6">
+          <Card padding="p-5" className="space-y-4">
+            <h2 className="text-sm font-bold text-slate-900 pb-2 border-b border-slate-100 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
+                +
+              </span>
+              <span>Upload Document</span>
+            </h2>
 
-          <div className="pt-4 border-t border-slate-100">
-            <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">
-              Uji Coba Pencarian Semantik RAG
-            </h3>
-            <form onSubmit={handleSearch} className="space-y-2">
-              <input
-                type="text"
-                placeholder="Ketik pertanyaan untuk mencari chunk..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <button
+            <form onSubmit={handleUpload} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">
+                  Supported formats (PDF, TXT, MD, CSV, DOCX)
+                </label>
+                <input
+                  type="file"
+                  required
+                  onChange={(e) => setFile(e.target.files[0])}
+                  className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-200 rounded-lg p-1.5"
+                />
+              </div>
+
+              <Button
                 type="submit"
-                disabled={searching}
-                className="w-full bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white text-xs font-medium py-2 rounded-lg transition-colors"
+                disabled={uploading || !file}
+                className="w-full text-xs py-2.5"
               >
-                {searching ? "Mencari Konteks..." : "Uji Konteks RAG"}
-              </button>
+                {uploading ? "Extracting & Chunking..." : "Upload & Index Knowledge"}
+              </Button>
             </form>
-          </div>
+
+            <div className="pt-4 border-t border-slate-100 space-y-2.5">
+              <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                Test Semantic Search
+              </h3>
+              <form onSubmit={handleSearch} className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Ask question to test chunk match..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                />
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  size="sm"
+                  disabled={searching}
+                  className="w-full text-xs"
+                >
+                  {searching ? "Searching..." : "Test RAG Query"}
+                </Button>
+              </form>
+            </div>
+          </Card>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="lg:col-span-8 space-y-6">
+          <Card padding="p-0" className="overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="font-bold text-slate-800">Basis Berkas Pengetahuan ({documents.length})</h2>
-              <button
+              <div>
+                <h2 className="font-bold text-sm text-slate-900">Indexed Knowledge Documents ({documents.length})</h2>
+                <p className="text-xs text-slate-500">Live library used for response generation</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={fetchDocuments}
-                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
               >
-                Segarkan
-              </button>
+                Refresh
+              </Button>
             </div>
 
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="p-6">
+                <Skeleton lines={4} />
               </div>
             ) : documents.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
-                <p className="text-3xl mb-2">📁</p>
-                <p className="font-medium text-slate-700">Belum ada dokumen yang diunggah</p>
-                <p className="text-xs mt-1 text-slate-400">Unggah file pertama untuk memperkaya wawasan AI Assistant</p>
-              </div>
+              <EmptyState
+                title="No documents indexed"
+                description="Upload your first documentation file to empower the AI Assistant with contextual knowledge."
+              />
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-xs text-slate-500 uppercase border-b border-slate-200">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#F8FAFC] text-slate-500 uppercase tracking-wider border-b border-slate-200 text-[11px] font-semibold">
                     <tr>
-                      <th className="px-5 py-3">Nama Dokumen</th>
-                      <th className="px-4 py-3">Ukuran</th>
+                      <th className="px-5 py-3">Document Name</th>
+                      <th className="px-4 py-3">Size</th>
                       <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Chunk</th>
-                      <th className="px-4 py-3 text-right">Aksi</th>
+                      <th className="px-4 py-3">Chunks</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {documents.map((doc) => (
-                      <tr key={doc.id} className="hover:bg-slate-50">
-                        <td className="px-5 py-3 font-medium text-slate-800">
+                      <tr key={doc.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="px-5 py-3 font-semibold text-slate-900">
                           <div className="flex items-center gap-2">
                             <span className="text-slate-400">📄</span>
                             <span className="truncate max-w-xs">{doc.file_name}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-500">{formatBytes(doc.size_bytes)}</td>
+                        <td className="px-4 py-3 text-slate-500">{formatBytes(doc.size_bytes)}</td>
                         <td className="px-4 py-3">
                           <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              doc.status === "PROCESSED"
-                                ? "bg-green-100 text-green-700"
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              doc.status === "PROCESSED" || doc.status === "INDEXED"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                 : doc.status === "FAILED"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-amber-100 text-amber-700"
+                                ? "bg-red-50 text-red-700 border border-red-200"
+                                : "bg-amber-50 text-amber-700 border border-amber-200"
                             }`}
                           >
-                            {doc.status}
+                            {doc.status || "INDEXED"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-xs font-bold text-indigo-600">
+                        <td className="px-4 py-3 font-bold text-blue-600">
                           {doc.chunk_count || 0}
                         </td>
                         <td className="px-4 py-3 text-right space-x-2">
                           <button
                             onClick={() => handleReprocess(doc.id)}
-                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                            className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
                           >
-                            Proses Ulang
+                            Reprocess
                           </button>
                           <button
                             onClick={() => handleDelete(doc.id)}
-                            className="text-xs text-red-600 hover:text-red-800 font-medium"
+                            className="text-xs text-red-600 hover:text-red-700 font-semibold cursor-pointer"
                           >
-                            Hapus
+                            Delete
                           </button>
                         </td>
                       </tr>
@@ -262,28 +268,30 @@ export default function DocumentManagement() {
                 </table>
               </div>
             )}
-          </div>
+          </Card>
 
           {searchResults.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-3">
-              <h3 className="font-bold text-sm text-slate-800 flex items-center justify-between">
-                <span>Hasil Pencarian Semantik ({searchResults.length} potongan chunk)</span>
-                <span className="text-xs text-slate-400 font-normal">Kueri: "{searchQuery}"</span>
-              </h3>
-              <div className="space-y-3">
+            <Card padding="p-5" className="space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 className="font-bold text-sm text-slate-900">
+                  Semantic Results ({searchResults.length} chunks matched)
+                </h3>
+                <span className="text-xs text-slate-400">Query: "{searchQuery}"</span>
+              </div>
+              <div className="space-y-2.5">
                 {searchResults.map((item, idx) => (
                   <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1">
-                    <div className="flex items-center justify-between font-semibold text-slate-700">
-                      <span>{item.file_name} &bull; Bagian #{item.chunk_index}</span>
-                      <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">
-                        Skor Relevansi: {item.score}
+                    <div className="flex items-center justify-between font-semibold text-slate-800">
+                      <span>{item.file_name} &bull; Chunk #{item.chunk_index}</span>
+                      <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200 text-[10px] font-bold">
+                        Relevance: {item.score}
                       </span>
                     </div>
                     <p className="text-slate-600 whitespace-pre-wrap leading-relaxed">{item.content}</p>
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           )}
         </div>
       </div>

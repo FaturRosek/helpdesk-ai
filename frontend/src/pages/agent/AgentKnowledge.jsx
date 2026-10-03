@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
-
-const STATUS_BADGE = {
-  DRAFT: "bg-slate-100 text-slate-600 border-slate-200",
-  PUBLISHED: "bg-green-100 text-green-700 border-green-200",
-  ARCHIVED: "bg-red-100 text-red-600 border-red-200",
-};
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Modal from "../../components/ui/Modal";
+import EmptyState from "../../components/ui/EmptyState";
+import { BookOpen, Plus, Search, ArrowLeft, Archive, FileText, CheckCircle2 } from "../../components/ui/Icons";
 
 export default function AgentKnowledge() {
   const [articles, setArticles] = useState([]);
@@ -25,12 +25,23 @@ export default function AgentKnowledge() {
     if (filterStatus) params.status = filterStatus;
     if (q) params.q = q;
     api.get("/knowledge", { params })
-      .then((r) => { setArticles(r.data.data || []); setSelected(null); })
+      .then((r) => {
+        setArticles(r.data.data || []);
+        setSelected(null);
+      })
+      .catch(() => setArticles([]))
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => { api.get("/categories").then((r) => setCategories(r.data.data || [])); }, []);
-  useEffect(() => { load(); }, [filterStatus]);
+  useEffect(() => {
+    api.get("/categories")
+      .then((r) => setCategories(r.data.data || []))
+      .catch(() => setCategories([]));
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [filterStatus]);
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -42,173 +53,258 @@ export default function AgentKnowledge() {
       setShowForm(false);
       load();
     } catch (err) {
-      setFormError(err.response?.data?.message || "Gagal menyimpan");
+      setFormError(err.response?.data?.message || "Gagal menyimpan artikel");
     } finally {
       setSaving(false);
     }
   }
 
   async function handleAction(id, action) {
-    try { await api.post(`/knowledge/${id}/${action}`); load(); }
-    catch (err) { alert(err.response?.data?.message || "Gagal"); }
+    try {
+      await api.post(`/knowledge/${id}/${action}`);
+      load();
+    } catch (err) {
+      alert(err.response?.data?.message || "Gagal mengubah status");
+    }
   }
 
-  /* Detail view */
+  function getStatusBadge(status) {
+    switch (status) {
+      case "PUBLISHED":
+        return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "ARCHIVED":
+        return "bg-amber-50 text-amber-700 border-amber-200";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  }
+
   if (selected) {
     return (
-      <div className="max-w-3xl space-y-5">
-        <button onClick={() => setSelected(null)}
-          className="flex items-center gap-1.5 text-sm text-indigo-600 font-medium hover:underline">
-          ← Kembali ke Daftar
+      <div className="max-w-4xl space-y-6">
+        <button
+          onClick={() => setSelected(null)}
+          className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Kembali ke Daftar Artikel
         </button>
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-          <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
+
+        <Card className="p-8">
+          <div className="flex items-start justify-between gap-4 flex-wrap border-b border-slate-100 pb-6 mb-6">
             <div>
               {selected.category_name && (
-                <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">{selected.category_name}</span>
+                <span className="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+                  {selected.category_name}
+                </span>
               )}
-              <h1 className="text-2xl font-bold text-slate-800 mt-2">{selected.title}</h1>
-              <p className="text-xs text-slate-400 mt-1">Oleh {selected.author_name || "—"}</p>
+              <h1 className="text-2xl font-bold text-slate-900 mt-3">{selected.title}</h1>
+              <p className="text-xs text-slate-400 mt-1">Ditulis oleh {selected.author_name || "Agen Helpdesk"}</p>
             </div>
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${STATUS_BADGE[selected.status]}`}>
+            <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${getStatusBadge(selected.status)}`}>
               {selected.status}
             </span>
           </div>
 
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2.5 mb-6">
             {selected.status !== "PUBLISHED" && (
-              <button onClick={() => handleAction(selected.id, "publish")}
-                className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-medium transition-colors">
-                Publish
-              </button>
+              <Button
+                variant="primary"
+                onClick={() => handleAction(selected.id, "publish")}
+                className="flex items-center gap-1.5 text-xs py-1.5"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Publikasikan
+              </Button>
             )}
             {selected.status === "PUBLISHED" && (
-              <button onClick={() => handleAction(selected.id, "archive")}
-                className="text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors">
-                Archive
-              </button>
+              <Button
+                variant="secondary"
+                onClick={() => handleAction(selected.id, "archive")}
+                className="flex items-center gap-1.5 text-xs py-1.5 text-amber-700"
+              >
+                <Archive className="w-3.5 h-3.5" />
+                Arsipkan
+              </Button>
             )}
             {selected.status !== "DRAFT" && (
-              <button onClick={() => handleAction(selected.id, "draft")}
-                className="text-xs border border-slate-200 text-slate-600 hover:bg-slate-50 px-3 py-1.5 rounded-lg font-medium transition-colors">
-                Ke Draft
-              </button>
+              <Button
+                variant="ghost"
+                onClick={() => handleAction(selected.id, "draft")}
+                className="flex items-center gap-1.5 text-xs py-1.5"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                Kembalikan ke Draft
+              </Button>
             )}
           </div>
 
-          <div className="border-t border-slate-100 pt-6 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+          <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-normal">
             {selected.content}
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Knowledge Base</h1>
-          <p className="text-sm text-slate-500 mt-0.5">{articles.length} artikel</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Pusat Pengetahuan Agen</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Tulis dan kelola dokumentasi solusi untuk referensi agen dan AI Assistant
+          </p>
         </div>
-        <button onClick={() => { setShowForm(true); setFormError(""); }}
-          className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm">
-          + Tulis Artikel
-        </button>
+        <Button
+          variant="primary"
+          onClick={() => {
+            setShowForm(true);
+            setFormError("");
+          }}
+          className="flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Tulis Artikel Baru
+        </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
-        <div className="relative">
-          <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()}
-            placeholder="Cari judul..."
-            className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white w-52" />
-        </div>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
-          <option value="">Semua Status</option>
-          <option value="DRAFT">Draft</option>
-          <option value="PUBLISHED">Published</option>
-          <option value="ARCHIVED">Archived</option>
-        </select>
-        <button onClick={load}
-          className="border border-slate-200 text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-          Cari
-        </button>
-      </div>
-
-      {/* Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Tulis Artikel Baru</h2>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Judul</label>
-                <input placeholder="Judul artikel" value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" required />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Kategori</label>
-                <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                  <option value="">— Pilih Kategori —</option>
-                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Isi Artikel</label>
-                <textarea placeholder="Tulis isi artikel..." value={form.content}
-                  onChange={(e) => setForm({ ...form, content: e.target.value })}
-                  rows={8} className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none" required />
-              </div>
-              {formError && <p className="text-red-500 text-sm">{formError}</p>}
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)}
-                  className="px-5 py-2.5 rounded-lg text-sm font-medium border border-slate-200 text-slate-600 hover:bg-slate-50">Batal</button>
-                <button disabled={saving}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-60 transition-colors">
-                  {saving ? "Menyimpan..." : "Simpan sebagai Draft"}
-                </button>
-              </div>
-            </form>
+      <Card className="p-4">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && load()}
+              placeholder="Cari judul panduan..."
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-colors"
+            />
           </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-colors text-slate-700"
+          >
+            <option value="">Semua Status</option>
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="ARCHIVED">Archived</option>
+          </select>
+          <Button variant="secondary" onClick={load}>
+            Cari
+          </Button>
         </div>
-      )}
+      </Card>
 
-      {/* Article list */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="py-16 text-center">
+          <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-xs text-slate-400 mt-3 font-medium">Memuat daftar artikel...</p>
         </div>
       ) : articles.length === 0 ? (
-        <div className="text-center py-16 text-slate-400 bg-white rounded-xl border border-slate-200">
-          <p className="text-4xl mb-3">📝</p>
-          <p className="font-medium">Belum ada artikel</p>
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title="Belum ada artikel"
+          description={q || filterStatus ? "Tidak ada artikel yang cocok dengan filter." : "Tulis artikel panduan pertama untuk membantu rekan tim."}
+          actionText={q || filterStatus ? "Reset Pencarian" : "Tulis Artikel"}
+          onAction={() => {
+            if (q || filterStatus) {
+              setQ("");
+              setFilterStatus("");
+              load();
+            } else {
+              setShowForm(true);
+            }
+          }}
+        />
       ) : (
         <div className="grid gap-3">
           {articles.map((a) => (
-            <div key={a.id} onClick={() => setSelected(a)}
-              className="bg-white rounded-xl border border-slate-200 hover:border-indigo-300 shadow-sm hover:shadow-md px-6 py-4 cursor-pointer transition-all flex items-start justify-between gap-4">
+            <Card
+              key={a.id}
+              onClick={() => setSelected(a)}
+              className="p-5 cursor-pointer hover:border-blue-400 hover:shadow-sm transition-all flex items-start justify-between gap-4"
+            >
               <div className="flex-1 min-w-0">
                 {a.category_name && (
-                  <span className="text-xs font-semibold text-indigo-500">{a.category_name}</span>
+                  <span className="text-xs font-semibold text-blue-600">{a.category_name}</span>
                 )}
-                <p className="font-semibold text-slate-800 mt-0.5">{a.title}</p>
-                <p className="text-sm text-slate-500 mt-1 line-clamp-1 leading-relaxed">{a.content}</p>
+                <p className="font-semibold text-slate-900 mt-0.5 text-base">{a.title}</p>
+                <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed">{a.content}</p>
+                <p className="text-xs text-slate-400 mt-3">Penulis: {a.author_name || "Agen"}</p>
               </div>
-              <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border ${STATUS_BADGE[a.status]}`}>
+              <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border ${getStatusBadge(a.status)}`}>
                 {a.status}
               </span>
-            </div>
+            </Card>
           ))}
         </div>
       )}
+
+      <Modal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        title="Tulis Artikel Solusi Baru"
+        maxWidth="max-w-2xl"
+      >
+        {formError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-medium px-3.5 py-2.5 rounded-lg mb-4">
+            {formError}
+          </div>
+        )}
+        <form onSubmit={handleCreate} className="space-y-4">
+          <Input
+            label="Judul Artikel"
+            placeholder="Contoh: Solusi Kesalahan Kode 502"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            required
+          />
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Kategori
+            </label>
+            <select
+              value={form.category_id}
+              onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-colors text-slate-800"
+            >
+              <option value="">— Pilih Kategori —</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Isi Konten Artikel
+            </label>
+            <textarea
+              placeholder="Jelaskan alur pemecahan masalah atau panduan troubleshooting..."
+              value={form.content}
+              onChange={(e) => setForm({ ...form, content: e.target.value })}
+              rows={8}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-colors resize-none text-slate-800"
+              required
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowForm(false)}
+            >
+              Batal
+            </Button>
+            <Button type="submit" variant="primary" disabled={saving}>
+              {saving ? "Menyimpan..." : "Simpan sebagai Draft"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
